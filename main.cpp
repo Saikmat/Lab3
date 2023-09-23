@@ -13,6 +13,7 @@
 #include <iostream>
 #include <vector>
 #include <cstring>
+#include <fstream>
 
 using namespace std;
 
@@ -24,7 +25,8 @@ using namespace std;
  */
 
 struct Animal {
-    char* name;
+    const char* name = new char[25];
+    string species;
     int typeCount;
     bool endangered;
 };
@@ -40,6 +42,10 @@ void displayEndangered(vector<Animal*> database);
 void searchAnimals(vector<Animal*> animals);
 
 void selectionSortStrings(vector<Animal*> &animals);
+
+void readAnimal(vector<Animal*>& animals, fstream&);
+
+void readSpecies(vector<string>& animals, fstream&);
 
 /*
  * The ADT structure which holds the animal database data
@@ -60,34 +66,19 @@ int main() {
     const int DISPLAY_ENDANGERED_MENU_OPTION = 3;
     const int SEARCH_ANIMALS_MENU_OPTION = 4;
     const int QUIT_MENU_OPTION = 5;
+    const string ANIMAL_RECORD_LOCATION = "animals.dat";
+    const string SPECIES_RECORD_LOCATION = "species.txt";
 
-    Animal* a1 = new Animal;
-    Animal* a2 = new Animal;
-    Animal* a3 = new Animal;
-    Animal* a4 = new Animal;
-    Animal* a5 = new Animal;
-    Animal* a6 = new Animal;
+    fstream animalRecords;
+    animalRecords.open(ANIMAL_RECORD_LOCATION);
+    vector<Animal*> database;
+    readAnimal(database, animalRecords);
 
-    a1->name = "California Puma";
-    a1->typeCount = 2005;
-    a1->endangered = false;
-    a2->name = "Bengal Tiger";
-    a2->typeCount = 97;
-    a2->endangered = true;
-    a3->name = "White Rhino";
-    a3->typeCount = 45;
-    a3->endangered = true;
-    a4->name = "California Condor";
-    a4->typeCount = 275;
-    a4->endangered = false;
-    a5->name = "Grey Wolf";
-    a5->typeCount = 77;
-    a5->endangered = true;
-    a6->name = "Three Toed Sloth";
-    a6->typeCount = 1725;
-    a6->endangered = false;
+    fstream speciesRecords;
+    speciesRecords.open(SPECIES_RECORD_LOCATION);
+    vector<string> speciesList;
+    readSpecies(speciesList, speciesRecords);
 
-    vector<Animal*> database = {a1, a2, a3, a4, a5, a6};
 
     const char WELCOME_TEXT[] = "Welcome to Animal Vector Database\n\n";
 
@@ -96,7 +87,6 @@ int main() {
                              "\n3. Display Endangered"
                              "\n4. Search animals"
                              "\n5. Quit";
-
     bool quit = true;
     cout << WELCOME_TEXT;
     while (quit) {
@@ -166,9 +156,11 @@ void printCopyright() {
 void addAnimals(vector<Animal*>* database) {
     const int ENDANGERED_COUNT = 100;
     int animalCount;
+    string speciesName;
     char *inputCstring;
     const string NONE = "none";
     string type = "Please enter the animal type (none to stop): ";
+    string species = "Please enter the animal species";
     string number = "Enter the number of animals: ";
     string error = "Negative Count, enter a positive value: ";
     string alreadyFound = "This animal is already in the database, please enter another animal";
@@ -201,6 +193,8 @@ void addAnimals(vector<Animal*>* database) {
                 }
             }
         } while (flag);
+        cout << species;
+        cin >> speciesName;
         cout << number;
         cin >> animalCount;
         while (animalCount < 0) {
@@ -281,4 +275,17 @@ void selectionSortStrings(vector<Animal*> &animals){
             }
         }
     }
+}
+
+void readAnimal(vector<Animal *> &animals, fstream &stream) {
+    while (!stream.eof()) {
+        Animal *animal = new Animal;
+        stream.read(const_cast<char *>(animal->name), 25);
+        stream.read(reinterpret_cast<char *>(animal->typeCount), 25);
+        stream.read(reinterpret_cast<char *>(animal->endangered), 25);
+    }
+}
+
+void readSpecies(vector<string> &animals, fstream &stream) {
+
 }
