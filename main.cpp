@@ -44,10 +44,13 @@ void updateRecordInVector(Animal* animal, vector<string> species);
 
 void updateRecordInFile(Animal *animal, int location, fstream &stream);
 
+void updateEndangeredStatus(vector<Animal *> &animals, const int count);
+
 int main() {
     printCopyright();
 
     int chosenOption;
+    const int ENDANGERED_COUNT = 100;
     const int ADD_ANIMALS_MENU_OPTION = 1;
     const int DISPLAY_ANIMALS_MENU_OPTION = 2;
     const int DISPLAY_ENDANGERED_MENU_OPTION = 3;
@@ -60,6 +63,7 @@ int main() {
     animalRecords.open(ANIMAL_RECORD_LOCATION, fstream::in | fstream::out | fstream::binary);
     vector<Animal*> database;
     readAnimal(database, animalRecords);
+    updateEndangeredStatus(database, ENDANGERED_COUNT);
     animalRecords.close();
 
     fstream speciesRecords;
@@ -137,6 +141,12 @@ int main() {
     return 0;
 }
 
+void updateEndangeredStatus(vector<Animal *> &animals, const int count) {
+    for (Animal *animal: animals) {
+        animal->endangered = animal->typeCount < count;
+    }
+}
+
 
 /*
  * Prints Howard CC Copyright statement
@@ -206,7 +216,7 @@ void addAnimals(vector<Animal *> *database, vector<string> species) {
         animal->typeCount = animalCount;
         strcpy(animal->name, inputCstring);
         strcpy(animal->species, speciesName.c_str());
-//        animal->endangered = animalCount < ENDANGERED_COUNT;
+        animal->endangered = animalCount < ENDANGERED_COUNT;
         database->push_back(animal);
         selectionSortStrings(*database);
     }
@@ -228,8 +238,8 @@ void displayAnimals(vector<Animal*> database) {
     selectionSortStrings(database);
     for (const Animal* ITEM: database) {
         cout << "\nAnimal: " << (*ITEM).name <<
-             "\nHas a count of: " << (*ITEM).typeCount; //<<
-//             ((*ITEM).endangered ?  ENDANGERED_STRING : NOT_ENDANGERED_STRING);
+             "\nHas a count of: " << (*ITEM).typeCount <<
+             ((*ITEM).endangered ?  ENDANGERED_STRING : NOT_ENDANGERED_STRING);
         cout << "\n\n";
     }
     if(database.empty()){
@@ -241,9 +251,9 @@ void displayEndangered(vector<Animal*> database) {
     const char ENDANGERED_STRING[] = " is endangered\n";
     selectionSortStrings(database);
     for(const Animal* VALUE : database){
-//        if((*VALUE).endangered){
-//            cout << (*VALUE).name << ENDANGERED_STRING;
-//        }
+        if((*VALUE).endangered){
+            cout << (*VALUE).name << ENDANGERED_STRING;
+        }
     }
     if(database.empty()){
         cout << "\nThere are no endangered animals to display\n";
@@ -264,8 +274,8 @@ void searchAnimals(vector<Animal*> animals, vector<string> speciesList, fstream 
         Animal currAnimal = *animals.at(mid);
         if (strcmp(input.c_str(), currAnimal.name) == 0) {
             cout << "Animal Name: " << currAnimal.name
-                 << "\nAnimal Count " << currAnimal.typeCount;
-//                 << "\nAnimal is " << (currAnimal.endangered ? "endangered" : "not Endangered");
+                 << "\nAnimal Count " << currAnimal.typeCount
+                 << "\nAnimal is " << (currAnimal.endangered ? "endangered" : "not Endangered");
             updateRecordInVector(&currAnimal, speciesList);
             updateRecordInFile(&currAnimal, mid, stream);
             return;
@@ -333,7 +343,7 @@ void selectionSortStrings(vector<Animal*> &animals){
 }
 
 /*
- * Not working
+ * Functional
  */
 void readAnimal(vector<Animal *> &animals, fstream &stream) {
     while (stream) {
