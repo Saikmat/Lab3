@@ -16,29 +16,33 @@
 using namespace std;
 
 struct Animal {
-    char* name = new char[25];
-    char* species = new char[25];
+    char name[25];
+    char species[25];
     int typeCount;
     bool endangered;
-}__attribute__((packed));
+};
 
 void printCopyright();
 
-void addAnimals(vector<Animal*>* database, fstream &stream);
+void addAnimals(vector<Animal *> *database, vector<string> species);
 
 void displayAnimals(vector<Animal*> database);
 
 void displayEndangered(vector<Animal*> database);
 
-void searchAnimals(vector<Animal*> animals);
+void searchAnimals(vector<Animal *> animals, vector<string> species, fstream &stream);
 
 void selectionSortStrings(vector<Animal*> &animals);
 
-void readAnimal(vector<Animal*>& animals, fstream&);
+void readAnimal(vector<Animal*>& animals, fstream& stream);
 
 void readSpecies(vector<string>& animals, fstream&);
 
-void updateFile(vector<Animal *>& animals, fstream &stream);
+void refreshFile(vector<Animal *>& animals, fstream &stream);
+
+void updateRecordInVector(Animal* animal, vector<string> species);
+
+void updateRecordInFile(Animal *animal, int location, fstream &stream);
 
 int main() {
     printCopyright();
@@ -56,6 +60,7 @@ int main() {
     animalRecords.open(ANIMAL_RECORD_LOCATION, fstream::in | fstream::out | fstream::binary);
     vector<Animal*> database;
     readAnimal(database, animalRecords);
+    animalRecords.close();
 
     fstream speciesRecords;
     speciesRecords.open(SPECIES_RECORD_LOCATION);
@@ -92,7 +97,9 @@ int main() {
         //Exhaustive
         switch (chosenOption) {
             case ADD_ANIMALS_MENU_OPTION: {
-                addAnimals(&database, animalRecords);
+                addAnimals(&database, speciesList);
+                animalRecords.open(ANIMAL_RECORD_LOCATION, ios::out | ios::binary);
+                refreshFile(database, animalRecords);
                 break;
             }
             case DISPLAY_ANIMALS_MENU_OPTION: {
@@ -104,7 +111,8 @@ int main() {
                 break;
             }
             case SEARCH_ANIMALS_MENU_OPTION: {
-                searchAnimals(database);
+                animalRecords.open(ANIMAL_RECORD_LOCATION, ios::app);
+                searchAnimals(database, speciesList, animalRecords);
                 break;
             }
             case QUIT_MENU_OPTION: {
@@ -137,16 +145,14 @@ void printCopyright() {
     cout << "Copyright 2023 - Howard Community College All rights reserved; Unauthorized duplication prohibited\n\n\n\n";
 }
 
-
-
-void addAnimals(vector<Animal*>* database, fstream &stream) {
+void addAnimals(vector<Animal *> *database, vector<string> species) {
     const int ENDANGERED_COUNT = 100;
     int animalCount;
     string speciesName;
     char *inputCstring;
     const string NONE = "none";
     string type = "Please enter the animal type (none to stop): ";
-    string species = "Please enter the animal species";
+    string speciesText = "Please enter the animal species from the menu";
     string number = "Enter the number of animals: ";
     string error = "Negative Count, enter a positive value: ";
     string alreadyFound = "This animal is already in the database, please enter another animal";
@@ -179,8 +185,16 @@ void addAnimals(vector<Animal*>* database, fstream &stream) {
                 }
             }
         } while (flag);
-        cout << species;
-        cin >> speciesName;
+        cout << speciesText;
+        for (int i = 0; i < species.size(); ++i) {
+            cout << i+1 << ". " + species.at(i) << endl;
+        }
+        int speciesValue = 0;
+        cin >> speciesValue;
+        while(speciesValue <= 0 || speciesValue > species.size()) {
+            cout << &"Invalid entry, enter a value between 1 and " [ species.size()];
+            cin >> speciesValue;
+        }
         cout << number;
         cin >> animalCount;
         while (animalCount < 0) {
@@ -192,15 +206,14 @@ void addAnimals(vector<Animal*>* database, fstream &stream) {
         animal->typeCount = animalCount;
         strcpy(animal->name, inputCstring);
         strcpy(animal->species, speciesName.c_str());
-        animal->endangered = animalCount < ENDANGERED_COUNT;
+//        animal->endangered = animalCount < ENDANGERED_COUNT;
         database->push_back(animal);
         selectionSortStrings(*database);
-        //updateFile(*database, stream);
     }
 }
 
-void updateFile(vector<Animal *>& animals, fstream &stream) {
-    stream.seekg(0);
+void refreshFile(vector<Animal *>& animals, fstream &stream) {
+    stream.seekg(ios::beg);
     selectionSortStrings(animals);
     for (const auto &animal: animals) {
         stream.write(animal->name, 25*sizeof(char));
@@ -215,8 +228,8 @@ void displayAnimals(vector<Animal*> database) {
     selectionSortStrings(database);
     for (const Animal* ITEM: database) {
         cout << "\nAnimal: " << (*ITEM).name <<
-             "\nHas a count of: " << (*ITEM).typeCount <<
-             ((*ITEM).endangered ?  ENDANGERED_STRING : NOT_ENDANGERED_STRING);
+             "\nHas a count of: " << (*ITEM).typeCount; //<<
+//             ((*ITEM).endangered ?  ENDANGERED_STRING : NOT_ENDANGERED_STRING);
         cout << "\n\n";
     }
     if(database.empty()){
@@ -228,16 +241,16 @@ void displayEndangered(vector<Animal*> database) {
     const char ENDANGERED_STRING[] = " is endangered\n";
     selectionSortStrings(database);
     for(const Animal* VALUE : database){
-        if((*VALUE).endangered){
-            cout << (*VALUE).name << ENDANGERED_STRING;
-        }
+//        if((*VALUE).endangered){
+//            cout << (*VALUE).name << ENDANGERED_STRING;
+//        }
     }
     if(database.empty()){
         cout << "\nThere are no endangered animals to display\n";
     }
 }
 
-void searchAnimals(vector<Animal*> animals) {
+void searchAnimals(vector<Animal*> animals, vector<string> speciesList, fstream &stream) {
     selectionSortStrings(animals);
     cout << "Enter the name of the animal you are looking for: ";
     int low = 0, mid, high = animals.size();
@@ -251,18 +264,62 @@ void searchAnimals(vector<Animal*> animals) {
         Animal currAnimal = *animals.at(mid);
         if (strcmp(input.c_str(), currAnimal.name) == 0) {
             cout << "Animal Name: " << currAnimal.name
-                 << "\nAnimal Count " << currAnimal.typeCount
-                 << "\nAnimal is " << (currAnimal.endangered ? "endangered" : "not Endangered");
+                 << "\nAnimal Count " << currAnimal.typeCount;
+//                 << "\nAnimal is " << (currAnimal.endangered ? "endangered" : "not Endangered");
+            updateRecordInVector(&currAnimal, speciesList);
+            updateRecordInFile(&currAnimal, mid, stream);
             return;
         } else if (strcmp(input.c_str(), currAnimal.name) > 0) {
-            low = mid + 1;
-        } else if (strcmp(input.c_str(), currAnimal.name) < 0) {
             high = mid - 1;
+        } else if (strcmp(input.c_str(), currAnimal.name) < 0) {
+            low = mid + 1;
         }
     }
 
     cout << "\nThere is no animal entry corresponding to \"" << input << "\"" << endl;
 
+}
+
+void updateRecordInFile(Animal *animal, int location, fstream &stream) {
+    stream.seekg(location*sizeof(Animal), ios::beg);
+    stream.seekp(-1*sizeof(Animal), ios::cur);
+    stream.write(reinterpret_cast<char*>(&animal), sizeof(Animal));
+}
+
+void updateRecordInVector(Animal* animal, vector<string> species) {
+    const string animalUpdate = "Enter the value you want to change animal to(! for no change)";
+    const string speciesUpdate = "Enter the new species of the animal(! for no change)";
+    const string countUpdate = "Enter the new count of animals(! for no change)";
+    char userChange;
+    cout << "Do you want to update the record?";
+    userChange = cin.get();
+    while(tolower(userChange) != 'y' || tolower(userChange) != 'n'){
+        cout << "enter a valid value <y or n>";
+        userChange = cin.get();
+    }
+    string temp;
+    if(userChange == 'y'){
+        cout << animalUpdate;
+        getline(cin, temp);
+        if(temp != "!"){
+            strcpy(animal->name, temp.c_str());
+        }
+
+        cout << speciesUpdate;
+        for (int i = 0; i < species.size(); ++i) {
+            cout << i+1 << ". " << species.at(i) << endl;
+        }
+        getline(cin, temp);
+        if(temp != "!"){
+            strcpy(animal->species, species.at(stoi(temp, nullptr, 10)).c_str());
+        }
+
+        cout << countUpdate;
+        getline(cin, temp);
+        if(temp != "!"){
+            animal->typeCount = stoi(temp, nullptr, 10);
+        }
+    }
 }
 
 void selectionSortStrings(vector<Animal*> &animals){
@@ -285,8 +342,8 @@ void readAnimal(vector<Animal *> &animals, fstream &stream) {
             return;
         }
         Animal* animal = new Animal;
-        stream.read(reinterpret_cast<char*>(&animal), sizeof(animal));
         animals.push_back(animal);
+        stream.read(reinterpret_cast<char*>(animals.back()), sizeof(Animal));
     }
 }
 
