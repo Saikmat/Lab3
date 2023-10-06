@@ -15,9 +15,11 @@
 
 using namespace std;
 
+const int MAX_LENGTH = 25;
+
 struct Animal {
-    char name[25];
-    char species[25];
+    char name[MAX_LENGTH];
+    char species[MAX_LENGTH];
     int typeCount;
     bool endangered;
 };
@@ -210,8 +212,8 @@ void addAnimals(vector<Animal *> *database, vector<string> species) {
         cout << "\n";
         Animal* animal = new Animal;
         animal->typeCount = animalCount;
-        strcpy(animal->name, inputCstring);
-        strcpy(animal->species, speciesName.c_str());
+        strncpy_s(animal->name, MAX_LENGTH, inputCstring, MAX_LENGTH);
+        strncpy_s(animal->species, MAX_LENGTH, speciesName.c_str(), MAX_LENGTH);
         animal->endangered = animalCount < ENDANGERED_COUNT;
         database->push_back(animal);
         selectionSortStrings(*database);
@@ -304,33 +306,41 @@ void updateRecordInFile(vector<Animal*> animals, int location, fstream &stream) 
 
 void updateRecordInVector(vector<Animal*> animals, int loc, vector<string> species) {
     const string animalUpdate = "Enter the value you want to change animal to(! for no change)";
-    const string speciesUpdate = "Enter the new species of the animal(! for no change)";
-    const string countUpdate = "Enter the new count of animals(! for no change)";
+    const string speciesUpdate = "Enter the new species of the animal";
+    const string countUpdate = "Enter the new count of animals";
 
     string temp;
     cout << animalUpdate;
     cin.ignore();
     getline(cin, temp);
     if(temp != "!"){
-        strset(animals.at(loc)->name, '0');
-        strcpy(animals.at(loc)->name, temp.c_str());
+        for (int i = 0; i < MAX_LENGTH; ++i) {
+            animals.at(loc)->species[i] = '0';
+        }
+        strncpy_s(animals.at(loc)->name, MAX_LENGTH, temp.c_str(), MAX_LENGTH);
     }
 
     cout << speciesUpdate << endl;
     for (int i = 0; i < species.size(); ++i) {
         cout << i+1 << ". " << species.at(i) << endl;
     }
-    getline(cin, temp);
-    if(temp != "!"){
-        strset(animals.at(loc)->species, '0');
-        strcpy(animals.at(loc)->species, species.at(stoi(temp, nullptr, 10)-1).c_str());
+
+    int numberInput;
+    cin >> numberInput;
+    while(numberInput < 0 || numberInput > species.size()){
+        cout << "\nThat is an invalid option, enter a value between 0 and " << species.size();
     }
+    for (int i = 0; i < MAX_LENGTH; ++i) {
+        animals.at(loc)->species[i] = '0';
+    }
+    strncpy_s(animals.at(loc)->species, animals.size(), species.at(numberInput).c_str(), animals.size());
 
     cout << countUpdate;
-    getline(cin, temp);
-    if(temp != "!"){
-        animals.at(loc)->typeCount = stoi(temp, nullptr, 10);
+    cin >> numberInput;
+    while(numberInput < 0){
+        cout << "Negative Number, please enter a positive numberInput for count";
     }
+    animals.at(loc)->typeCount = numberInput;
 }
 
 void selectionSortStrings(vector<Animal*> &animals){
