@@ -2,9 +2,8 @@
 * Copyright 2023 - Howard Community College All rights reserved; Unauthorized duplication prohibited.
 * Name: Sai Matukumalli
 * Class: CMSY-171
-* Instructor: Justyn Crook
+* Instructor: William Lieberman
 * Program Name: Lab 3
-* Program Description:
 */
 
 
@@ -150,7 +149,7 @@ int main() {
  * Prints Howard CC Copyright statement
  */
 void printCopyright() {
-    cout << "Copyright 2023 - Howard Community College All rights reserved; Unauthorized duplication prohibited\n\n\n\n";
+    cout << "Copyright 2024 - Howard Community College All rights reserved; Unauthorized duplication prohibited\n\n\n\n";
 }
 
 void addAnimals(vector<Animal *> *database, vector<string> species) {
