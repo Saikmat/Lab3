@@ -1,9 +1,11 @@
 /*
-* Copyright 2023 - Howard Community College All rights reserved; Unauthorized duplication prohibited.
+* Copyright 2024 - Howard Community College All rights reserved; Unauthorized duplication prohibited.
 * Name: Sai Matukumalli
 * Class: CMSY-171
-* Instructor: William Lieberman
+* Instructor: Justin Lieberman
 * Program Name: Lab 3
+* Program Description: This program reads animals from a file, puts them into our animal database vector, and allowing us to manipulate the data points.
+ * The program allows us to manipulate the file when animals are added or edited as well.
 */
 
 
@@ -31,11 +33,11 @@ void displayAnimals(vector<Animal*> database);
 
 void displayEndangered(vector<Animal*> database);
 
-void searchAnimals(vector<Animal *> animals, vector<string> species, fstream &stream);
+void searchAnimals(vector<Animal *> animals, const vector<string>& species, fstream &stream);
 
 void selectionSortStrings(vector<Animal*> &animals);
 
-void readAnimal(vector<Animal*>& animals, fstream& stream, const int ENDANGERED_COUNT);
+void readAnimal(vector<Animal*>& animals, fstream& stream, int ENDANGERED_COUNT);
 
 void readSpecies(vector<string>& animals, fstream&);
 
@@ -45,7 +47,7 @@ void updateRecordInVector(vector<Animal *> animal, int loc, vector<string> speci
 
 void updateRecordInFile(vector<Animal *> animals, int location, fstream &stream);
 
-void updateEndangered(vector<Animal *> *animals, const int ENDANGERED_COUNT);
+void updateEndangered(vector<Animal *> *animals, int ENDANGERED_COUNT);
 
 int main() {
     printCopyright();
@@ -102,7 +104,7 @@ int main() {
             }
         }
         //Exhaustive
-        switch (chosenOption) {
+        switch (chosenOption) { // NOLINT(*-multiway-paths-covered)
             case ADD_ANIMALS_MENU_OPTION: {
                 addAnimals(&database, speciesList);
                 animalRecords.open(ANIMAL_RECORD_LOCATION, ios::out | ios::binary);
@@ -149,7 +151,7 @@ int main() {
  * Prints Howard CC Copyright statement
  */
 void printCopyright() {
-    cout << "Copyright 2024 - Howard Community College All rights reserved; Unauthorized duplication prohibited\n\n\n\n";
+    cout << "Copyright 2023 - Howard Community College All rights reserved; Unauthorized duplication prohibited\n\n\n\n";
 }
 
 void addAnimals(vector<Animal *> *database, vector<string> species) {
@@ -256,7 +258,7 @@ void displayEndangered(vector<Animal*> database) {
     }
 }
 
-void searchAnimals(vector<Animal*> animals, vector<string> speciesList, fstream &stream) {
+void searchAnimals(vector<Animal*> animals, const vector<string>& speciesList, fstream &stream) {
     selectionSortStrings(animals);
     cout << "Enter the name of the animal you are looking for: ";
     int low = 0, mid, high = animals.size()-1;
@@ -313,8 +315,8 @@ void updateRecordInVector(vector<Animal*> animals, int loc, vector<string> speci
     cin.ignore();
     getline(cin, temp);
     if(temp != "!"){
-        for (int i = 0; i < MAX_LENGTH; ++i) {
-            animals.at(loc)->species[i] = '0';
+        for (char & specie : animals.at(loc)->species) {
+            specie = '0';
         }
         strncpy_s(animals.at(loc)->name, MAX_LENGTH, temp.c_str(), MAX_LENGTH);
     }
@@ -329,8 +331,8 @@ void updateRecordInVector(vector<Animal*> animals, int loc, vector<string> speci
     while(numberInput < 0 || numberInput > species.size()){
         cout << "\nThat is an invalid option, enter a value between 0 and " << species.size();
     }
-    for (int i = 0; i < MAX_LENGTH; ++i) {
-        animals.at(loc)->species[i] = '0';
+    for (char & specie : animals.at(loc)->species) {
+        specie = '0';
     }
     strncpy_s(animals.at(loc)->species, animals.size(), species.at(numberInput).c_str(), animals.size());
 
@@ -342,12 +344,14 @@ void updateRecordInVector(vector<Animal*> animals, int loc, vector<string> speci
     animals.at(loc)->typeCount = numberInput;
 }
 
-void selectionSortStrings(vector<Animal*> &animals){
-    for (int i = 0; i < animals.size()-1; ++i) {
-        for (int j = i+1; j < animals.size(); ++j) {
-            if(strcmp((*animals.at(i)).name, (*animals.at(j)).name) > 0){
-                swap(animals.at(i), animals.at(j));
+void selectionSortStrings(vector<Animal*> &animals) {
+    for (int i = 0; i < animals.size() - 1; ++i) {
+        int min_idx = i;
+        for (int j = i + 1; j < animals.size(); ++j) {
+            if (strcmp((*animals.at(j)).name, (*animals.at(min_idx)).name) > 0) {
+                min_idx = j;
             }
+            swap(animals.at(min_idx), animals.at(j));
         }
     }
 }
@@ -378,7 +382,7 @@ void readSpecies(vector<string> &animals, fstream &stream) {
     while(!stream.eof()){
         char *str = new char[25];
         stream.getline(str, 25);
-        animals.push_back(str);
+        animals.emplace_back(str);
 
     }
 }
