@@ -151,9 +151,13 @@ int main() {
  * Prints Howard CC Copyright statement
  */
 void printCopyright() {
-    cout << "Copyright 2023 - Howard Community College All rights reserved; Unauthorized duplication prohibited\n\n\n\n";
+    cout << "Copyright 2024 - Howard Community College All rights reserved; Unauthorized duplication prohibited\n\n\n\n";
 }
 
+/*
+ * Adds animals to the vector
+ * Takes input of the animal database, and the list of species
+ */
 void addAnimals(vector<Animal *> *database, vector<string> species) {
     const int ENDANGERED_COUNT = 100;
     int animalCount;
@@ -221,6 +225,10 @@ void addAnimals(vector<Animal *> *database, vector<string> species) {
     }
 }
 
+/*
+ * Rewrites the entire file in order of the vector
+ * Takes the vector and the filestream
+ */
 void refreshFile(vector<Animal *>& animals, fstream &stream) {
     stream.seekp(ios::beg);
     for (int i = 0; i < animals.size(); i++) {
@@ -228,7 +236,10 @@ void refreshFile(vector<Animal *>& animals, fstream &stream) {
     }
 }
 
-
+/*
+ * Displays all the animals, including their name, species, count, and endangered status
+ * Takes the animal database input
+ */
 void displayAnimals(vector<Animal*> database) {
     const char ENDANGERED_STRING[] = "\nThis animal is endangered";
     const char NOT_ENDANGERED_STRING[] = "\nThis animal is not endangered";
@@ -245,6 +256,10 @@ void displayAnimals(vector<Animal*> database) {
     }
 }
 
+/*
+ * Displays only the endangered animals
+ * Takes input of the database
+ */
 void displayEndangered(vector<Animal*> database) {
     const char ENDANGERED_STRING[] = " is endangered\n";
     selectionSortStrings(database);
@@ -258,6 +273,10 @@ void displayEndangered(vector<Animal*> database) {
     }
 }
 
+/*
+ * Searches the animals using binary search, and allows the record values to be updated, before rewriting to the file
+ * Takes input of the animals database, the list of species, and the filestream
+ */
 void searchAnimals(vector<Animal*> animals, const vector<string>& speciesList, fstream &stream) {
     selectionSortStrings(animals);
     cout << "Enter the name of the animal you are looking for: ";
@@ -298,6 +317,10 @@ void searchAnimals(vector<Animal*> animals, const vector<string>& speciesList, f
     cout << "\nThere is no animal entry corresponding to \"" << input << "\"" << endl;
 }
 
+/*
+ * Individually writes animals into the file without clearing it each time
+ * Takes the database, the location that it needs to be written to, and the filestream
+ */
 void updateRecordInFile(vector<Animal*> animals, int location, fstream &stream) {
     stream.seekg(location * sizeof(Animal), ios::beg);
     stream.seekp(ios::beg + location * sizeof(Animal));
@@ -305,6 +328,9 @@ void updateRecordInFile(vector<Animal*> animals, int location, fstream &stream) 
     stream.close();
 }
 
+/*
+ * Allows individual elements in the vector to be updated, helper method for search
+ */
 void updateRecordInVector(vector<Animal*> animals, int loc, vector<string> species) {
     const string animalUpdate = "Enter the value you want to change animal to(! for no change)";
     const string speciesUpdate = "Enter the new species of the animal";
@@ -344,6 +370,10 @@ void updateRecordInVector(vector<Animal*> animals, int loc, vector<string> speci
     animals.at(loc)->typeCount = numberInput;
 }
 
+/*
+ * Sorts the list of animals using a selection sort in the vector
+ * Takes the animals vector
+ */
 void selectionSortStrings(vector<Animal*> &animals) {
     for (int i = 0; i < animals.size() - 1; ++i) {
         int min_idx = i;
@@ -356,7 +386,9 @@ void selectionSortStrings(vector<Animal*> &animals) {
     }
 }
 
-
+/*
+ * Reads the animals out of the file and adds them into the vector, and then sorts the vector
+ */
 void readAnimal(vector<Animal *> &animals, fstream &stream, const int ENDANGERED_COUNT) {
     while (!stream.eof()) {
         if(!stream.good() || stream.eof()) {
@@ -372,12 +404,20 @@ void readAnimal(vector<Animal *> &animals, fstream &stream, const int ENDANGERED
     selectionSortStrings(animals);
 }
 
+/*
+ * Updates whether the animals are endangered in the vector
+ * Takes input of the animals database, and the number of animals needed to be endangered.
+ */
 void updateEndangered(vector<Animal *> *animals, const int ENDANGERED_COUNT) {
     for (Animal *animal : *animals) {
         animal->endangered = animal->typeCount < ENDANGERED_COUNT;
     }
 }
 
+/*
+ * Reads the values from the species list and puts them into a vector
+ * Takes input of the filestream and the vector of strings to put speices names.
+ */
 void readSpecies(vector<string> &animals, fstream &stream) {
     while(!stream.eof()){
         char *str = new char[25];
